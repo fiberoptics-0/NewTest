@@ -1,0 +1,4 @@
+{
+  "tooltip.machineexample.energy": "能量存储：%1$s/%2$s",
+  "tooltip.machineexample.fluid_amount": "储量：%1$s/%2$s"
+}

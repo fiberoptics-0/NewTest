@@ -1,0 +1,19 @@
+{
+  "type": "newtest:example_machine",
+  "inputItem": {
+    "item": "minecraft:gold_ingot"
+  },
+  "inputFluid": {
+    "id": "minecraft:lava",
+    "amount": 1000
+  },
+  "inputEnergy": 10000,
+  "outputItem": {
+    "id": "minecraft:iron_ingot",
+    "count": 2
+  },
+  "outputFluid": {
+    "id": "minecraft:water",
+    "amount": 1000
+  }
+}
