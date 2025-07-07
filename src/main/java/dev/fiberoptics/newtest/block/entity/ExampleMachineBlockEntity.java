@@ -10,12 +10,9 @@ import dev.fiberoptics.newtest.recipe.input.ExampleMachineInput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -28,8 +25,6 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -47,8 +42,6 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
     private final int MAX_PROGRESS = 60;
 
     private int progress = 0;
-    private Fluid inputFluid = Fluids.EMPTY;
-    private Fluid outputFluid = Fluids.EMPTY;
 
     public ExampleMachineBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlockEntityTypes.EXAMPLE_MACHINE_BE.get(), pos, blockState);
@@ -60,10 +53,12 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
                     case 1 -> MAX_PROGRESS;
                     case 2 -> energyStorage.getEnergyStored();
                     case 3 -> energyStorage.getMaxEnergyStored();
-                    case 4 -> fluidInventory.getFluidInTank(0).getAmount();
-                    case 5 -> fluidInventory.getTankCapacity(0);
-                    case 6 -> fluidInventory.getFluidInTank(1).getAmount();
-                    case 7 -> fluidInventory.getTankCapacity(1);
+                    case 4 -> BuiltInRegistries.FLUID.getId(fluidInventory.getFluidInTank(0).getFluid());
+                    case 5 -> fluidInventory.getFluidInTank(0).getAmount();
+                    case 6 -> fluidInventory.getTankCapacity(0);
+                    case 7 -> BuiltInRegistries.FLUID.getId(fluidInventory.getFluidInTank(1).getFluid());
+                    case 8 -> fluidInventory.getFluidInTank(1).getAmount();
+                    case 9 -> fluidInventory.getTankCapacity(1);
                     default -> 0;
                 };
             }
@@ -75,7 +70,7 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
 
             @Override
             public int getCount() {
-                return 8;
+                return 10;
             }
         };
     }
@@ -92,30 +87,7 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
         return energyStorage;
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        if(!this.inputFluid.isSame(Fluids.EMPTY)) {
-            tag.put("InputFluid",new FluidStack(this.inputFluid,1).save(registries));
-        }
-        if(!this.outputFluid.isSame(Fluids.EMPTY)) {
-            tag.put("OutputFluid",new FluidStack(this.outputFluid,1).save(registries));
-        }
-        return tag;
-    }
-
-    @Override
-    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
     protected void tick() {
-        if(!this.inputFluid.isSame(this.fluidInventory.getFluidInTank(0).getFluid()) ||
-                !this.outputFluid.isSame(this.fluidInventory.getFluidInTank(1).getFluid())) {
-            this.inputFluid = this.fluidInventory.getFluidInTank(0).getFluid();
-            this.outputFluid = this.fluidInventory.getFluidInTank(1).getFluid();
-            level.sendBlockUpdated(worldPosition, this.getBlockState(), this.getBlockState(), 2);
-        }
         Optional<RecipeHolder<ExampleMachineRecipe>> recipe = this.getRecipe();
         if (recipe.isPresent()) {
             if(progress >= MAX_PROGRESS) {
@@ -177,12 +149,6 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
         if(tag.contains("Inventory")) inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         if(tag.contains("FluidInventory")) fluidInventory.deserializeNBT(registries, tag.getCompound("FluidInventory"));
         if(tag.contains("EnergyStorage")) energyStorage.deserializeNBT(registries, tag.getCompound("EnergyStorage"));
-        if(tag.contains("InputFluid")) FluidStack.parse(registries, tag.getCompound("InputFluid")).ifPresent(
-                fluidStack -> this.inputFluid = fluidStack.getFluid()
-        );
-        if(tag.contains("OutputFluid")) FluidStack.parse(registries, tag.getCompound("OutputFluid")).ifPresent(
-                fluidStack -> this.outputFluid = fluidStack.getFluid()
-        );
     }
 
     @Override
@@ -195,11 +161,4 @@ public class ExampleMachineBlockEntity extends BlockEntity implements MenuProvid
         return new ExampleMachineMenu(containerId,inventory,this,this.data);
     }
 
-    public Fluid getInputFluid() {
-        return inputFluid;
-    }
-
-    public Fluid getOutputFluid() {
-        return outputFluid;
-    }
 }

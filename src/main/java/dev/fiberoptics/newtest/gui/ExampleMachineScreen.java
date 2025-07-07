@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -49,22 +50,23 @@ public class ExampleMachineScreen extends AbstractContainerScreen<ExampleMachine
         guiGraphics.blit(TEXTURE,80,35,176,0,scaledProgress,16);
         int scaledEnergy = (int)(73 * (((float)menu.data.get(2))/((float)menu.data.get(3))));
         guiGraphics.blit(TEXTURE,55,24,176,16,scaledEnergy,3);
-        if(!menu.blockEntity.getInputFluid().isSame(Fluids.EMPTY)) {
-            int scaledHeight = (int) (41*((float)menu.data.get(4))/((float)menu.data.get(5)));
+        BuiltInRegistries.FLUID.getHolder(menu.data.get(4)).ifPresent(ref -> {
+            int scaledHeight = (int) (41*((float)menu.data.get(5))/((float)menu.data.get(6)));
             int x1 = 46, y1 = 64;
             int x0 = 19, y0 = y1 - scaledHeight + 1;
-            renderFluid(guiGraphics,menu.blockEntity.getInputFluid(),x0,y0,x1,y1);
-        }
-        if(!menu.blockEntity.getOutputFluid().isSame(Fluids.EMPTY)) {
-            int scaledHeight = (int) (41*((float)menu.data.get(6))/((float)menu.data.get(7)));
+            renderFluid(guiGraphics,ref.value(),x0,y0,x1,y1);
+        });
+        BuiltInRegistries.FLUID.getHolder(menu.data.get(7)).ifPresent(ref -> {
+            int scaledHeight = (int) (41*((float)menu.data.get(8))/((float)menu.data.get(9)));
             int x1 = 163, y1 = 64;
             int x0 = 136, y0 = y1 - scaledHeight + 1;
-            renderFluid(guiGraphics,menu.blockEntity.getOutputFluid(),x0,y0,x1,y1);
-        }
+            renderFluid(guiGraphics,ref.value(),x0,y0,x1,y1);
+        });
         pose.popPose();
     }
 
     private void renderFluid(GuiGraphics guiGraphics, Fluid fluid, int x0, int y0, int x1, int y1) {
+        if(x0 > x1 || y0 > y1) return;
         IClientFluidTypeExtensions properties = IClientFluidTypeExtensions.of(fluid);
         ResourceLocation fluidTexture = properties.getStillTexture();
         TextureAtlasSprite fluidSprite = Minecraft.getInstance()
@@ -93,9 +95,7 @@ public class ExampleMachineScreen extends AbstractContainerScreen<ExampleMachine
 
             }
         }
-        try {
-            BufferUploader.drawWithShader(vertexBuffer.buildOrThrow());
-        } catch (Exception ignored) {}
+        BufferUploader.drawWithShader(vertexBuffer.buildOrThrow());
         RenderSystem.disableBlend();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
@@ -110,13 +110,17 @@ public class ExampleMachineScreen extends AbstractContainerScreen<ExampleMachine
             tooltips.add(Component.translatable(
                     "tooltip.machineexample.energy", menu.data.get(2),menu.data.get(3)));
         } else if (mouseX >= x+18 && mouseX <= x+47 && mouseY >= y+23 && mouseY <= y+65) {
-            tooltips.add(menu.blockEntity.getInputFluid().getFluidType().getDescription());
-            tooltips.add(Component.translatable(
-                    "tooltip.machineexample.fluid_amount", menu.data.get(4), menu.data.get(5)));
+            BuiltInRegistries.FLUID.getHolder(menu.data.get(4)).ifPresent(ref -> {
+                tooltips.add(ref.value().getFluidType().getDescription());
+                tooltips.add(Component.translatable(
+                        "tooltip.machineexample.fluid_amount", menu.data.get(5), menu.data.get(6)));
+            });
         } else if (mouseX >= x+135 && mouseX <= x+164 && mouseY >= y+23 && mouseY <= y+65) {
-            tooltips.add(menu.blockEntity.getOutputFluid().getFluidType().getDescription());
-            tooltips.add(Component.translatable(
-                    "tooltip.machineexample.fluid_amount", menu.data.get(6), menu.data.get(7)));
+            BuiltInRegistries.FLUID.getHolder(menu.data.get(7)).ifPresent(ref -> {
+                tooltips.add(ref.value().getFluidType().getDescription());
+                tooltips.add(Component.translatable(
+                        "tooltip.machineexample.fluid_amount", menu.data.get(8), menu.data.get(9)));
+            });
         }
         guiGraphics.renderTooltip(this.font,tooltips, Optional.empty(),mouseX,mouseY);
     }

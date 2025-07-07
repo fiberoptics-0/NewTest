@@ -26,6 +26,8 @@ public class ModEnergyStorage extends EnergyStorage {
 
     @Override
     public void deserializeNBT(HolderLookup.Provider provider, Tag nbt) {
-        super.deserializeNBT(provider, nbt);
+        if(nbt instanceof IntTag intTag) {
+            this.setEnergyStored(intTag.getAsInt());
+        }
     }
 }

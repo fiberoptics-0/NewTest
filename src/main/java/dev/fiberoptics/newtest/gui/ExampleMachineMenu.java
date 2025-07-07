@@ -1,6 +1,5 @@
 package dev.fiberoptics.newtest.gui;
 
-import dev.fiberoptics.newtest.block.ExampleMachineBlock;
 import dev.fiberoptics.newtest.block.ModBlocks;
 import dev.fiberoptics.newtest.block.entity.ExampleMachineBlockEntity;
 import dev.fiberoptics.newtest.gui.slot.ModSlotItemHandler;
@@ -11,7 +10,6 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class ExampleMachineMenu extends AbstractContainerMenu {
 
@@ -21,7 +19,7 @@ public class ExampleMachineMenu extends AbstractContainerMenu {
 
     public ExampleMachineMenu(int containerId, Inventory inv, FriendlyByteBuf buf) {
         this(containerId,inv, (ExampleMachineBlockEntity) inv.player.level().getBlockEntity(buf.readBlockPos()),
-                new SimpleContainerData(8));
+                new SimpleContainerData(10));
     }
 
     public ExampleMachineMenu(int containerId, Inventory inv,
@@ -50,11 +48,6 @@ public class ExampleMachineMenu extends AbstractContainerMenu {
         for (int i=0; i<9; i++) {
             this.addSlot(new Slot(inv,i,8+i*18,142));
         }
-    }
-
-    @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        super.clicked(slotId, button, clickType, player);
     }
 
     @Override
